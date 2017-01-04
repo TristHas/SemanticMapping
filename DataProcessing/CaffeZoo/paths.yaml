@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Raw Metadata
+words_synset_f   : "raw_data/synset_words.txt"
+words_synset_url : "http://dl.caffe.berkeleyvision.org/caffe_ilsvrc12.tar.gz"
+2012_target_f    : "raw_data/resnet50.pkl"
+2012_target_url  : "https://s3.amazonaws.com/lasagne/recipes/pretrained/imagenet/resnet50.pkl"
+2015_target_url  : "https://s3.amazonaws.com/lasagne/recipes/pretrained/imagenet/inception_v3.pkl"
+2015_target_f    : "raw_data/inception_v3.pkl"
+
+# Extracted data
+words_synset_df  : "extracted_data/synset_words"
+2012_target_df   : "extracted_data/2012_target"
+2015_target_df   : "extracted_data/2015_target"
+

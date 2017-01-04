@@ -1,0 +1,23 @@
+### ILSVRC raw data
+# raw metadata
+raw_label_map       : /home/tristan/data/ILSVRC2015/devkit/data/map_clsloc.txt
+val_ground_truth    : /home/tristan/data/ILSVRC2015/devkit/data/ILSVRC2015_clsloc_validation_ground_truth.txt
+val_numerotation    : /home/tristan/data/ILSVRC2015/ImageSets/CLS-LOC/val.txt
+
+# photos
+ilsvrc_photos       : /home/tristan/data/ILSVRC2015/Data/CLS-LOC/
+train_photo_dir     : /home/tristan/data/ILSVRC2015/Data/CLS-LOC/train/
+test_photo_dir      : /home/tristan/data/ILSVRC2015/Data/CLS-LOC/test/
+val_photo_dir       : /home/tristan/data/ILSVRC2015/Data/CLS-LOC/val/
+
+
+### Preprocessed metadata
+label_map           : /home/tristan/data/Imagenet/ILSVRC_metadata/label_map
+sensembed_label_map : /home/tristan/data/Imagenet/datasets/sensembed_label_map
+
+
+### Datasets for models
+ds_path             : /home/tristan/data/Imagenet/datasets/
+ilsvrc_ds           : /home/tristan/data/Imagenet/datasets/ILSVRC2015
+ilsvrc_sensembed    : /home/tristan/data/Imagenet/datasets/ILSVRC2015_Sensembed
+

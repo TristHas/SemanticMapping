@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Raw data
+sensembed_raw_file  :  "Sensembed/raw_vectors"
+
+
+raw_dbpuris             :  java_extracted/dbpuris
+raw_categories          :  java_extracted/categories
+raw_compounds           :  java_extracted/compounds
+raw_domains             :  java_extracted/domains
+raw_edges               :  java_extracted/edges
+raw_images              :  java_extracted/images
+raw_otherForms          :  java_extracted/otherForms
+raw_test                :  java_extracted/test
+raw_type                :  java_extracted/type
+raw_wnoffsets           :  java_extracted/wnoffsets
+raw_yagouris            :  java_extracted/yagouris
+
+# Processed_data
+df_dbpuris             :  processed_data/dbpuris
+df_categories          :  processed_data/categories
+df_compounds           :  processed_data/compounds
+df_domains             :  processed_data/domains
+df_edges               :  processed_data/edges
+df_images              :  processed_data/images
+df_otherForms          :  processed_data/otherForms
+df_test                :  processed_data/test
+df_type                :  processed_data/type
+df_wnoffsets           :  processed_data/wnoffsets
+df_yagouris            :  processed_data/yagouris

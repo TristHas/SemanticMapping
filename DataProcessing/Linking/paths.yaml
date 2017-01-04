@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+##############################
+###       raw files        ###
+##############################
+
+# File provided by hyperditct
+file_map_wn30_wn31  : "raw_links/wn30map31.txt"
+url_map_wn30_wn31   : "http://www.hyperdic.net/download/wn30map31.zip"
+
+# File obtained when requesting babelnet endpoint
+# for bn synsid having exactmatch in princeton wn31
+file_map_wn31_bn    : "raw_links/wn31mapbn.txt"
+file_map_wn30_bn    : "raw_links/wn30mapbn.txt"
+
+
+# File obtained when requesting babelnet endpoint
+# for bn synsid havibg exactmatch in both princeton wn31
+# and dbpres
+file_map_wn31_dbpres: "raw_links/wn31mapdbpres.txt"
+
+# File obtained when requesting babelnet endpoint
+# for bn synsid having exactmatch in both princeton wn31
+# and dbpres (too many match for dbpres so the answer is
+# truncated if we only ask for that)
+file_map_bn_dbpres  : "raw_links/bnmapdbpres.txt"
+
+
+
+###################################
+### Generated pairwise linkings ###
+###################################
+
+file_wn31_bn        : "processed_data/WN31_BN"
+file_wn30_bn        : "processed_data/WN30_BN"
+
+
+file_wn31_dbp       : "processed_data/WN31_DBP"
+file_bn_dbp         : "processed_data/BN_DBP"
+file_merged         : "processed_data/MERGED"
+file_bn_sembed      : "processed_data/BN_SEMBED"
+# NONEED?
+file_wn20_dbp       : "processed_data/WN20_DBP"
+file_wn30_wn31      : "processed_data/WN30_WN31"
+file_wn20_wn30      : "processed_data/WN20_WN30"

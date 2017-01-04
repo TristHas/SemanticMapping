@@ -1,0 +1,19 @@
+### Linking
+linking_root : "/home/tristan/data/Linking"
+
+### BabelNet
+babelnet_root       : "/home/tristan/data/Babelnet"
+sensembed_store     : "/home/tristan/data/Babelnet/Sensembed/vectors_store"
+sensembed_words     :  "words"
+sensembed_senses    :  "senses"
+sensembed_synsets   :  "synsets"
+sensembed_imsynsets :  "image_synsets"
+
+
+### ImageNet
+imagenet_root : "/home/tristan/data/Imagenet"
+imagenet_synset_metadata_frame : "/home/tristan/data/Imagenet/raw_metadata/synset"
+default_photo_dir   : "/home/tristan/data/Imagenet/photos"
+
+### Caffe Zoo
+caffezoo_root : "/home/tristan/data/CaffeZoo"

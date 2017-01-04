@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# Raw data local files
+f_wnid_names_pair   : "raw_metadata/words.txt"
+f_is_a_pairs        : "raw_metadata/is_a_pair"
+f_syns_struct       : "raw_metadata/taxonimy.xml"
+f_syns_release      : "raw_metadata/ReleaseStatus.xml"
+
+# Raw data Url
+url_syns_release    : "http://www.image-net.org/api/xml/ReleaseStatus.xml"
+url_syns_struct     : "http://www.image-net.org/api/xml/structure_released.xml"
+url_is_a_pairs      : "http://www.image-net.org/archive/wordnet.is_a.txt"
+url_wnid_names_pair : "http://image-net.org/archive/words.txt"
