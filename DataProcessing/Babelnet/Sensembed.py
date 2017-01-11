@@ -8,8 +8,7 @@ import numpy as np
 import pandas as pd
 pd.set_option('io.hdf.default_format','table')
 
-sys.path.append("..")
-from util.Helpers import Logger
+from ..util.Helpers import Logger
 
 path_file = 'paths.yaml'
 log = Logger()

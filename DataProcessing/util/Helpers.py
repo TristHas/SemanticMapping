@@ -8,7 +8,7 @@ import requests
 import numpy as np
 import pandas as pd
 
-logfile = "/tmp/default.log"
+logfile = "/media/tristan/260726b1-f8fa-4740-8707-2dd2b1d197fd/default.log"
 
 class Logger():
     def __init__(self):

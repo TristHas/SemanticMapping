@@ -12,8 +12,8 @@ import theano
 
 from Loading import ThreadedLoader
 from DataProcessing.util.Helpers import Logger
-from Helpers import Validator
-from NewMappingFunctions import *
+from Validation import NNValidator
+from MappingFunctions import *
 
 log = Logger()
 
@@ -34,7 +34,7 @@ class SMBDTrainer(object):
         self.valid_dl      = ThreadedLoader(os.path.join(ds_path,"valid"), input_type="features",
                                             input_unit_norm=input_unit_norm, label_unit_norm=label_unit_norm)
 
-        self.v             = Validator(distance=distance)
+        self.v             = NNValidator(distance=distance)
         self.hist          = pd.DataFrame(columns=["reg", "lr", "score_type", "scores", "epoch"])
 
         self.epoch_count   = 0

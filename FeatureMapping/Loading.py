@@ -15,6 +15,88 @@ from DataProcessing.util.Helpers import Logger
 log = Logger()
 
 
+class CPUMemLoader(object):
+    def __init__(self, ds_path, input = "features"):
+        """
+        """
+        label_ids = os.listdir(os.path.join(ds_path, input))
+        batch_ids = os.listdir(os.path.join(ds_path, "label"))
+        assert set(batch_ids) == set(label_ids)
+        self.ds_path    = ds_path
+        self.input      = input
+        self.batch_ids  = batch_ids
+        self.batch_count= 0
+        self.n_batch    = len(self.batch_ids)
+
+    def get_batch(self, i):
+        """
+        """
+        return (hkl.load(os.path.join(self.ds_path, self.input, i)).astype("float32"),
+                hkl.load(os.path.join(self.ds_path, "label", i)).astype("uint"))
+
+
+    def next_batch(self):
+        """
+        """
+        x,y = self.get_batch(self.batch_ids[self.batch_count])
+        self.batch_count = ( self.batch_count + 1 ) % self.n_batch
+        return x,y
+
+    def epoch(self):
+        """
+        """
+        return (self.get_batch(i) for i in self.batch_ids)
+
+class FeatureMapper(object):
+    """
+    """
+    def __init__(self, label_mapping = "Sensembed_A", label_unit_norm = True,
+                       input_mean = 0, input_unit_norm = False):
+        """
+        """
+        self.label_mapping = label_mapping
+        self.input_mean = input_mean
+        self.input_unit_norm = input_unit_norm
+
+        if self.label_mapping == "Sensembed_A":
+            self.index_map = get_Sensembed_A_labelmap()
+        elif self.label_mapping == "Random":
+            self.index_map = get_Random_labelmap()
+        else:
+            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
+            raise Exception("Unknown dataset for LabelMapper")
+
+        if label_unit_norm:
+            vectors = self.index_map.drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1).get_values()
+            self.index_map[range(400)] = normalize(vectors)
+
+    def map_label(self, label):
+        """
+            Given a 1d array of labels, return a 2d array of sensembed vectors
+        """
+        if self.label_mapping == "Sensembed_A":
+            smbd = pd.DataFrame(data={"LABEL":label})
+            index = self.index_map[self.index_map.LABEL.isin(smbd.LABEL)]
+            smbd = smbd.reset_index().merge(index, how="left").set_index('index')
+            smbd = smbd.drop(["LABEL", "BN", "POS", "WNID", "gp"], axis=1).get_values().astype("float32")
+            return smbd
+        else:
+            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
+            raise Exception("Unknown mapping type {} for LabelMapper".format(mapping))
+
+    def map_input(self, input):
+        """
+            Given a 1d array of labels, return a 2d array of sensembed vectors
+        """
+
+        if self.input_mean:
+            log.error("Unknown input mapping type: Non null input mean")
+            raise Exception("Unknown input mapping type: Non null input mean")
+        elif self.input_unit_norm:
+            return input / np.expand_dims(np.linalg.norm(input,axis=1),1)
+        else:
+            return input
+
 class ThreadedLoader(object):
     def __init__(self,  ds_path = "/home/tristan/data/Imagenet/datasets/Sensembed_A/256_224/center_crop/train",
                         input_type = "features", input_mean = 0, input_unit_norm = True,
@@ -192,6 +274,14 @@ class ThreadedLoader(object):
             log.warn("Parallel Loader asked to stop mapping while not mapping")
 
 
+
+
+
+
+
+
+
+
 # Multiprocess Loader
 from multiprocessing import Process, Value, Array, Queue
 from Queue import Full, Empty
@@ -337,85 +427,5 @@ class MultiprocessedLoader(object):
             log.warn("Parallel Mapper asked to stop mapping while not mapping")
 
 
-class CPUMemLoader(object):
-    def __init__(self, ds_path, input = "features"):
-        """
-        """
-        label_ids = os.listdir(os.path.join(ds_path, input))
-        batch_ids = os.listdir(os.path.join(ds_path, "label"))
-        assert set(batch_ids) == set(label_ids)
-        self.ds_path    = ds_path
-        self.input      = input
-        self.batch_ids  = batch_ids
-        self.batch_count= 0
-        self.n_batch    = len(self.batch_ids)
-
-    def get_batch(self, i):
-        """
-        """
-        return (hkl.load(os.path.join(self.ds_path, self.input, i)).astype("float32"),
-                hkl.load(os.path.join(self.ds_path, "label", i)).astype("uint"))
 
 
-    def next_batch(self):
-        """
-        """
-        x,y = self.get_batch(self.batch_ids[self.batch_count])
-        self.batch_count = ( self.batch_count + 1 ) % self.n_batch
-        return x,y
-
-    def epoch(self):
-        """
-        """
-        return (self.get_batch(i) for i in self.batch_ids)
-
-
-class FeatureMapper(object):
-    """
-    """
-    def __init__(self, label_mapping = "Sensembed_A", label_unit_norm = True,
-                       input_mean = 0, input_unit_norm = False):
-        """
-        """
-        self.label_mapping = label_mapping
-        self.input_mean = input_mean
-        self.input_unit_norm = input_unit_norm
-
-        if self.label_mapping == "Sensembed_A":
-            self.index_map = get_Sensembed_A_labelmap()
-        elif self.label_mapping == "Random":
-            self.index_map = get_Random_labelmap()
-        else:
-            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
-            raise Exception("Unknown dataset for LabelMapper")
-
-        if label_unit_norm:
-            vectors = self.index_map.drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1).get_values()
-            self.index_map[range(400)] = normalize(vectors)
-
-    def map_label(self, label):
-        """
-            Given a 1d array of labels, return a 2d array of sensembed vectors
-        """
-        if self.label_mapping == "Sensembed_A":
-            smbd = pd.DataFrame(data={"LABEL":label})
-            index = self.index_map[self.index_map.LABEL.isin(smbd.LABEL)]
-            smbd = smbd.reset_index().merge(index, how="left").set_index('index')
-            smbd = smbd.drop(["LABEL", "BN", "POS", "WNID", "gp"], axis=1).get_values().astype("float32")
-            return smbd
-        else:
-            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
-            raise Exception("Unknown mapping type {} for LabelMapper".format(mapping))
-
-    def map_input(self, input):
-        """
-            Given a 1d array of labels, return a 2d array of sensembed vectors
-        """
-
-        if self.input_mean:
-            log.error("Unknown input mapping type: Non null input mean")
-            raise Exception("Unknown input mapping type: Non null input mean")
-        elif self.input_unit_norm:
-            return input / np.expand_dims(np.linalg.norm(input,axis=1),1)
-        else:
-            return input

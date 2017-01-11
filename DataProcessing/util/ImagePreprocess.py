@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys, os
+import numpy as np
 from scipy.misc import imread, imresize
 import skimage.transform
 
-import numpy as np
-
-
-sys.path.append("..")
-from util.Helpers import Logger
+from Helpers import Logger
 log = Logger()
 
 def resize(img, img_size = 224):

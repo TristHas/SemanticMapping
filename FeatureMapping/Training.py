@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from DataProcessing.util.Helpers import Logger
-from NewTrainer import SMBDTrainer, plot_hist
+from Trainer import SMBDTrainer, plot_hist
 
 log = Logger()
 
