@@ -2,8 +2,8 @@
 linking_root : "/home/tristan/data/Linking"
 
 ### BabelNet
-babelnet_root       : "/home/tristan/data/Babelnet"
-sensembed_store     : "/home/tristan/data/Babelnet/Sensembed/vectors_store"
+babelnet_root       : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/"
+sensembed_store     : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/vectors_store"
 sensembed_words     :  "words"
 sensembed_senses    :  "senses"
 sensembed_synsets   :  "synsets"
