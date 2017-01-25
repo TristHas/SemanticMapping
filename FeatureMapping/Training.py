@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os, sys
 from timeit import time
-sys.path.append("..")
 
 import numpy as np
 import pandas as pd
@@ -10,7 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from DataProcessing.util.Helpers import Logger
-from Trainer import SMBDTrainer, plot_hist
+from FeatureMapping.Trainer import SMBDTrainer, plot_hist
 
 log = Logger()
 
@@ -44,22 +43,19 @@ def run_tests_smbd(nepoch=70):
             tr.drop_hist("/home/tristan/Desktop/smbd_tests/reg_test_smbd_hinge_dot_" + str(reg) + "_" + str(lr))
 
 
-#log.info("Unit input! Square")
-#tr = SMBDTrainer(lr = 0.1, reg = 0.00001, mode = "square")
-#tr.run_training(5)
-#tr.set_lr(0.01)
-#tr.run_training(5)
 
 
-log.info("Unit input! Dot. No bias")
-tr = SMBDTrainer(lr = 1, reg = 0.001, mode = "struct")
-tr.run_training(2)
-#tr.set_lr(0.01)
-#tr.run_training(5)
+tr = SMBDTrainer(lr = 1, reg = 0.001, mode = "hinge")
+tr.run_training_adjusted(10, {0:1,1:0.1,5:0.01,10:None})
+tr.drop_hist("/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/Sensembed_A/hist/hinge_sembed")
+tr.stop()
 
-#tr = SMBDTrainer(lr = 1, reg = 0.001, mode = "square", input_unit_norm = True, label_unit_norm = True)
-
-
+dims = [10,20,50,100,200,400,800,1600]
+for dim in dims:
+    tr = SMBDTrainer(labels = dim, lr = 1, reg = 0.001, mode = "hinge")
+    tr.run_training_adjusted(10,{0:1,1:0.1,5:0.01,10:None})
+    tr.stop()
+    tr.drop_hist("/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/Sensembed_A/hist/hinge_random_{}".format(dim))
 
 
 

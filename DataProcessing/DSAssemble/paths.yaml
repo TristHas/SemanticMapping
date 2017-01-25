@@ -12,12 +12,12 @@ val_photo_dir       : /home/tristan/data/ILSVRC2015/Data/CLS-LOC/val/
 
 
 ### Preprocessed metadata
-label_map           : /home/tristan/data/Imagenet/ILSVRC_metadata/label_map
-sensembed_label_map : /home/tristan/data/Imagenet/datasets/sensembed_label_map
+label_map           : /media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/ILSVRC_metadata/label_map
+sensembed_label_map : /media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/sensembed_label_map
 
 
 ### Datasets for models
-ds_path             : /home/tristan/data/Imagenet/datasets/
-ilsvrc_ds           : /home/tristan/data/Imagenet/datasets/ILSVRC2015
-ilsvrc_sensembed    : /home/tristan/data/Imagenet/datasets/ILSVRC2015_Sensembed
+ds_path             : /media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/
+ilsvrc_ds           : /media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/ILSVRC2015
+ilsvrc_sensembed    : /media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/datasets/ILSVRC2015_Sensembed
 

@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os, sys
 from timeit import time
-sys.path.append("..")
 
 import numpy as np
 import pandas as pd
@@ -11,7 +10,7 @@ import matplotlib.pyplot as plt
 import theano
 import theano.tensor as T
 
-from DataProcessing.util.Helpers import Logger
+from ..DataProcessing.util.Helpers import Logger
 from MappingFunctions import *
 from Trainers import SMBDTrainer, CLASTrainer
 

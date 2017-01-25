@@ -1,11 +1,12 @@
 ### Linking
-linking_root : "/home/tristan/data/Linking"
+linking_root : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Linking"
 
 ### BabelNet
 babelnet_root       : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/"
 babelnet_store      : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/bnet_store"
 babelnet_categories : categories
 babelnet_graph      : graph
+
 sensembed_store     : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/vectors_store"
 sensembed_words     :  "words"
 sensembed_senses    :  "senses"
@@ -14,8 +15,8 @@ sensembed_imsynsets :  "image_synsets"
 
 
 ### ImageNet
-imagenet_root                   : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Imagenet/"
-imagenet_synset_metadata_frame  : "/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Imagenet/raw_metadata/synset"
+imagenet_root                   : "/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/"
+imagenet_synset_metadata_frame  : "/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/raw_metadata/synset"
 default_photo_dir               : "/media/tristan/260726b1-f8fa-4740-8707-2dd2b1d197fd/Imagenet/photos"
 
 ### Caffe Zoo

@@ -7,22 +7,12 @@ from Helpers import get_Sensembed_A_labelmap, normalize
 
 
 class NNValidator(object):
-    def __init__(self, labels = "smbd", distance = "cosine"):
+    def __init__(self, labels, distance = "cosine"):
         """
         """
         assert distance in ["cosine", "euclidean"]
-        assert labels in ["smbd", "random"]
         self.distance = distance
-        if labels == "smbd":
-            index_map = get_Sensembed_A_labelmap()
-        else:
-            raise Exception("Not supposed to use random yet. Random labels must be shared by both Validator and FeatureMapper so need a better scheme")
-
-        data = index_map.sort_values(by="LABEL").drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1)
-        data = data.get_values().astype("float32")
-        if distance == "cosine":
-            data = normalize(data)
-        self.tree = cKDTree(data)
+        self.tree = cKDTree(labels)
 
     def smd_k_best_pred(self, predictions, k=5):
         """

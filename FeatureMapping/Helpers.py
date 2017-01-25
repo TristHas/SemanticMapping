@@ -1,37 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, sys
-sys.path.append("..")
-
-from scipy.spatial import cKDTree
 
 import numpy as np
 import pandas as pd
 import hickle as hkl
 
-from DataProcessing.DSAssemble.ILSVRC_Semantic import load_Sensembed_A_labelmap, load_Sensembed_B_labelmap
-from DataProcessing.DSAssemble.ILSVRC_preprocessing import label_map_2012
-from DataProcessing.Linking.Linker import merge_wn_sembed
+from ..DataProcessing.DSAssemble.ILSVRC_Semantic import load_Sensembed_A_labelmap, load_Sensembed_B_labelmap
+from ..DataProcessing.DSAssemble.ILSVRC_preprocessing import label_map_2012
+from ..DataProcessing.Linking.Linker import merge_wn_sembed
 
-# Really need some refactoring, there is no reason for those function to be here
-# Plus, Need a scheme to share the labels between validator and featuremapper.
-# Should merge the two? Need some UML drawing here.
-# Feature Mapper only exists in the ThreadLoader but Validator accessed by Trainer
-# Rethink architecture when need new functionalities
 
-def get_Sensembed_A_labelmap():
+# The labelmap functions should be moved to DataProcessing. AssembleDS
+def get_Sensembed_A_labelmap(unit):
     imnet_sembed   = merge_wn_sembed()
     imnet_labels   = load_Sensembed_A_labelmap()
-    return imnet_labels.merge(imnet_sembed)
+    label_map      = imnet_labels.merge(imnet_sembed).drop(["BN", "POS", "WNID", "gp"], axis=1)
+    if unit:
+        data = normalize(label_map[range(400)].get_values()).astype("float32")
+        label_map [range(400)] = data
+    return label_map
 
-def make_Random_labelmap(n_class, sample_dim):
+def make_Random_labelmap(n_class, sample_dim, distrib):
     data = np.random.randn(n_class, sample_dim + 5)
     df = pd.DataFrame(columns=["BN", "POS", "WNID", "gp", "LABEL"] + range(sample_dim), data = data)
     df["LABEL"] = range(n_class)
-    pd.to_pickle(df, "/home/tristan/data/Imagenet/datasets/Sensembed_A/random_{}".format(sample_dim))
+    pd.to_pickle(df, "/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/Sensembed_A/random_{}".format(sample_dim))
 
-def get_Random_labelmap(sample_dim=400):
-    return pd.load_pickle("/home/tristan/data/Imagenet/datasets/Sensembed_A/random_{}".format(sample_dim))
+def get_Random_labelmap(sample_dim=400, unit = True):
+    imnet_labels = pd.read_pickle("/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/Sensembed_A/random_{}".format(sample_dim))
+    label_map      = imnet_labels.drop(["BN", "POS", "WNID", "gp"], axis=1)
+    if unit:
+        data = normalize(label_map[range(sample_dim)].get_values()).astype("float32")
+        label_map [range(sample_dim)] = data
+    return label_map
 
 def normalize(vectors):
     """

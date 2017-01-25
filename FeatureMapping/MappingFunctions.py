@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys, os
-sys.path.append("..")
 from timeit import time
 import numpy as np
 import theano
@@ -10,29 +9,23 @@ import lasagne
 from lasagne.layers import DenseLayer, InputLayer
 
 from Helpers import get_Sensembed_A_labelmap, normalize
-from DataProcessing.util.Helpers import Logger
+from ..DataProcessing.util.Helpers import Logger
 log = Logger()
 
 
 
 
-def compile_hinge(l_r=0.01, reg=0.00001, margin = 0.1):
+def compile_hinge(labels, l_r=0.01, reg=0.00001, margin = 0.1, n_in = 2048, batch_size = 256):
     """
         DOC
     """
 
     input            = T.matrix("x")
     target           = T.vector("y", dtype="uint64")
-    pred, params     = linear_model(input)
+    pred, params     = linear_model(input, n_in = n_in, n_out = labels.shape[1], batch_size = batch_size)
 
-    # TOBECHANGED
-    #pred             = T.matrix("z")
-
-    index_map        = get_Sensembed_A_labelmap()
-    data             = index_map.sort_values(by="LABEL").drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1)
-    data             = normalize(data.get_values().astype("float32"))
-    data             = np.tile(data,(256,1,1)).swapaxes(1,2)
-    smbds            = theano.shared(data)
+    labels           = np.tile(labels,(batch_size,1,1)).swapaxes(1,2)
+    smbds            = theano.shared(labels)
 
     positive_samples = smbds[0,:,target.astype("int64")].dimshuffle(0,1,"x")
     negative_samples = smbds
@@ -47,32 +40,25 @@ def compile_hinge(l_r=0.01, reg=0.00001, margin = 0.1):
     penalty      = reg * lasagne.regularization.apply_penalty(params, lasagne.regularization.l2)
     total_loss   = l_r * (loss + penalty)
     updates      = lasagne.updates.adadelta(total_loss, params, l_r)
-    #train_func   = theano.function(inputs = [target, pred], outputs = [sample_loss,sample_positive_dist, sample_negative_dist, positive_samples, negative_samples])#loss, updates=updates)
     train_func   = theano.function(inputs = [input, target], outputs = loss, updates=updates)
     valid_func   = theano.function(inputs = [input, target], outputs = [loss, pred])
-
     return train_func, valid_func
 
-
-def compile_struct(l_r=0.01, reg=0.00001):
+def compile_struct(labels, l_r=0.01, reg=0.00001, n_in = 2048, batch_size = 256, ):
     """
         DOC
     """
 
     input            = T.matrix("x")
     target           = T.vector("y", dtype="uint64")
-    pred, params     = linear_model(input)
+    pred, params     = linear_model(input, n_in = n_in, n_out = labels.shape[1], batch_size = batch_size)
 
-    # TOBECHANGED
-    #pred             = T.matrix("z")
+    index_map        = get_Sensembed_A_labelmap(True)
+    labels           = labels.sort_values(by="LABEL").drop(["LABEL"], axis=1).get_values().astype("float32")
+    smbds            = theano.shared(np.tile(labels,(batch_size,1,1)).swapaxes(1,2))
 
-    index_map        = get_Sensembed_A_labelmap()
-    data             = index_map.sort_values(by="LABEL").drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1)
-    data             = normalize(data.get_values().astype("float32"))
-    smbds            = theano.shared(np.tile(data,(256,1,1)).swapaxes(1,2))
-
-    dists            = np.dot(data, data.transpose())
-    norms            = np.linalg.norm(data, axis=1)
+    dists            = np.dot(labels, labels.transpose())
+    norms            = np.linalg.norm(labels, axis=1)
     dists           /= np.expand_dims(norms,1)
     dists           /= np.expand_dims(norms,1).transpose()
     dists            = theano.shared(dists)
@@ -90,9 +76,6 @@ def compile_struct(l_r=0.01, reg=0.00001):
 
     return train_func, valid_func
 
-
-
-
 # Math Helpers
 def norm(u):
     return u.norm(2, axis=1)#.dimshuffle(0,'x')
@@ -104,16 +87,15 @@ def cosine_sim(u,v):
     """Cosine Similarity measure"""
     return (u*v).sum(axis=1)/(norm(u) * norm(v))
 
-
 # Model functions accept a symbolic variable input and return a double (prediction, parameters)
-def linear_model(input):
-    input_l  = InputLayer((256, 2048), input_var = input)
-    output_l = DenseLayer(input_l, num_units=400, nonlinearity=None)
+def linear_model(input, batch_size=256, n_in = 2048, n_out=400):
+    input_l  = InputLayer((batch_size, n_in), input_var = input)
+    output_l = DenseLayer(input_l, num_units=n_out, nonlinearity=None)
     return lasagne.layers.get_output(output_l), lasagne.layers.get_all_params(output_l)[:1]
 
-def dense_model(input):
-    input_l  = InputLayer((256, 2048), input_var = input)
-    output_l = DenseLayer(input_l, num_units=400, nonlinearity=None)
+def dense_model(input, batch_size=256, n_in = 2048, n_out=400):
+    input_l  = InputLayer((batch_size, n_in), input_var = input)
+    output_l = DenseLayer(input_l, num_units=n_out, nonlinearity=None)
     return lasagne.layers.get_output(output_l), lasagne.layers.get_all_params(output_l)
 
 
@@ -284,16 +266,13 @@ def compile_square(l_r=0.01, reg=0.01):
     return train_func, valid_func
 
 
-def compile_square_hinge(l_r=0.01, reg=0.01, margin=0.1, normalize = True):
+def compile_square_hinge(l_r=0.01, reg=0.01, margin=0.1, normal = True):
     """
         DOC
     """
 
-    index_map        = get_Sensembed_A_labelmap()
-    data             = index_map.sort_values(by="LABEL").drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1)
-    data             = data.get_values().astype("float32")
-    if normalize:
-        data = normalize(data)
+    index_map        = get_Sensembed_A_labelmap(normal)
+    data             = index_map.sort_values(by="LABEL").drop(["LABEL"], axis=1).get_values().astype("float32")
     data             = np.tile(data,(256,1,1)).swapaxes(1,2)
     smbds            = theano.shared(data)
 

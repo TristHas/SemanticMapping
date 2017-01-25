@@ -9,8 +9,7 @@ import hickle as hkl
 import pandas as pd
 import numpy as np
 
-from Helpers import get_Sensembed_A_labelmap, get_Random_labelmap, normalize
-from DataProcessing.util.Helpers import Logger
+from ..DataProcessing.util.Helpers import Logger
 
 log = Logger()
 
@@ -50,39 +49,22 @@ class CPUMemLoader(object):
 class FeatureMapper(object):
     """
     """
-    def __init__(self, label_mapping = "Sensembed_A", label_unit_norm = True,
+    def __init__(self, label_map,
                        input_mean = 0, input_unit_norm = False):
         """
         """
-        self.label_mapping = label_mapping
         self.input_mean = input_mean
         self.input_unit_norm = input_unit_norm
-
-        if self.label_mapping == "Sensembed_A":
-            self.index_map = get_Sensembed_A_labelmap()
-        elif self.label_mapping == "Random":
-            self.index_map = get_Random_labelmap()
-        else:
-            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
-            raise Exception("Unknown dataset for LabelMapper")
-
-        if label_unit_norm:
-            vectors = self.index_map.drop(["BN", "POS", "WNID", "gp", "LABEL"], axis=1).get_values()
-            self.index_map[range(400)] = normalize(vectors)
+        self.index_map = label_map
 
     def map_label(self, label):
         """
             Given a 1d array of labels, return a 2d array of sensembed vectors
         """
-        if self.label_mapping == "Sensembed_A":
-            smbd = pd.DataFrame(data={"LABEL":label})
-            index = self.index_map[self.index_map.LABEL.isin(smbd.LABEL)]
-            smbd = smbd.reset_index().merge(index, how="left").set_index('index')
-            smbd = smbd.drop(["LABEL", "BN", "POS", "WNID", "gp"], axis=1).get_values().astype("float32")
-            return smbd
-        else:
-            log.error("Unknown mapping type {} for LabelMapper".format(mapping))
-            raise Exception("Unknown mapping type {} for LabelMapper".format(mapping))
+        smbd = pd.DataFrame(data={"LABEL":label})
+        smbd = smbd.reset_index().merge(self.index_map, how="left").set_index('index')
+        smbd = smbd.drop(["LABEL"], axis=1).get_values().astype("float32")
+        return smbd
 
     def map_input(self, input):
         """
@@ -98,9 +80,8 @@ class FeatureMapper(object):
             return input
 
 class ThreadedLoader(object):
-    def __init__(self,  ds_path = "/home/tristan/data/Imagenet/datasets/Sensembed_A/256_224/center_crop/train",
+    def __init__(self,  label_map, ds_path,
                         input_type = "features", input_mean = 0, input_unit_norm = True,
-                        label_mapping = "Sensembed_A", label_unit_norm = True,
                         load_parallel = True, map_parallel = True,
                         queues_size=15, queues_timeout = 0.5):
         """
@@ -108,7 +89,7 @@ class ThreadedLoader(object):
         from Queue import Queue, Full, Empty
         self.memloader      = CPUMemLoader(ds_path=ds_path, input = input_type)
         self.nbatches       = self.memloader.n_batch
-        self.mapper         = FeatureMapper(label_mapping = label_mapping, label_unit_norm = label_unit_norm,
+        self.mapper         = FeatureMapper(label_map,
                                             input_mean = input_mean, input_unit_norm = input_unit_norm)
 
         self.queues_timeout = queues_timeout

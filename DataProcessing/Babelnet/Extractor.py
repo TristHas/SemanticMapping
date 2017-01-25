@@ -3,14 +3,14 @@
 
 import os, yaml
 import pandas as pd
+import numpy as np
+from scipy.sparse import csr_matrix
 
 root_paths_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 "..",
                                 "paths.yaml")
 module_paths_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 "paths.yaml")
-
-# Edges (21G), Categories (11G) will probably need to be iterated
 
 with open(root_paths_file, "r") as f_root:
     root_path  = yaml.load(f_root)
@@ -59,16 +59,16 @@ def split_categories(df):
 
 def extract_all():
     extract_type()
-    extract_domain()
+    extract_domains()
     extract_wnoffsets()
     extract_dbp()
     extract_yago()
     extract_compounds()
     extract_otherForms()
     extract_images()
-    #extract_graph()
-    #extract_categories()
-
+    extract_graph()
+    extract_categories()
+    extract_synsets()
 
 def extract_type():
     """
@@ -77,14 +77,16 @@ def extract_type():
     df = pd.read_table(f_type, delimiter=",", skipinitialspace=True)
     split_bn(df)
     df.to_pickle(df_type)
+    print "Type extracted from {} to {}".format(f_type, df_type)
 
-def extract_domain():
+def extract_domains():
     """
         Works for type, domain, wnoffset
     """
-    df = pd.read_table(f_domain, delimiter=",", skipinitialspace=True)
+    df = pd.read_table(f_domains, delimiter=",", skipinitialspace=True)
     split_bn(df)
-    df.to_pickle(df_domain)
+    df.to_pickle(df_domains)
+    print "domains extracted from {} to {}".format(f_domains, df_domains)
 
 def extract_wnoffsets():
     """
@@ -93,6 +95,13 @@ def extract_wnoffsets():
     df = pd.read_table(f_wnoffsets, delimiter=",", skipinitialspace=True)
     split_bn(df)
     df.to_pickle(df_wnoffsets)
+    print "wnoffsets extracted from {} to {}".format(f_wnoffsets, df_wnoffsets)
+
+def extract_synsets():
+    f_synsets = "/home/tristan/data/Babelnet/java_extracted/synsets"
+    df = pd.read_table(f_synsets, names=["bnid"], skiprows=1,delimiter=",", skipinitialspace=True)
+    df = df.reset_index().rename(columns={"index":"bnID"})
+    df.to_pickle("/media/tristan/b2e18d6c-6e39-4556-9ed7-032d4b0de1a5/Babelnet/processed_data/synsets")
 
 def extract_dbp():
     """
@@ -104,17 +113,19 @@ def extract_dbp():
     del df["extra"]
     split_bn(df)
     df.to_pickle(df_dbp)
+    print "dbp extracted from {} to {}".format(f_dbp, df_dbp)
 
 def extract_yago():
     """
         Handles extra separator (coma) in the target column
     """
-    df = pd.read_table(f_dbp, names=["bnid", "yago", "extra"], skiprows=1,delimiter=",", skipinitialspace=True)
+    df = pd.read_table(f_yago, names=["bnid", "yago", "extra"], skiprows=1,delimiter=",", skipinitialspace=True)
     splitted = df[df.extra.notnull()]
     df.loc[splitted.index.get_values(), "yago"]= splitted["yago"]+"," + splitted["extra"]
     del df["extra"]
     split_bn(df)
     df.to_pickle(df_yago)
+    print "yago extracted from {} to {}".format(f_yago, df_yago)
 
 def extract_compounds():
     """
@@ -122,6 +133,7 @@ def extract_compounds():
     df = pd.read_table(f_compounds, names=["bnid", "lang", "compound"], skiprows=1,delimiter=",", skipinitialspace=True)
     split_bn(df)
     df.to_pickle(df_compounds)
+    print "compounds extracted from {} to {}".format(f_compounds, df_compounds)
 
 def extract_otherForms():
     """
@@ -129,24 +141,23 @@ def extract_otherForms():
     df = pd.read_table(f_otherForms, names=["bnid", "lang", "otherForms"], skiprows=1,delimiter=",", skipinitialspace=True)
     split_bn(df)
     df.to_pickle(df_otherForms)
+    print "otherForms extracted from {} to {}".format(f_otherForms, df_otherForms)
 
 def extract_images():
     """
     """
     df = pd.read_table(f_images, names=["bnid", "html", "extra"], skiprows=1,delimiter=",", skipinitialspace=True)
-    df["link"]=df.dbp.apply(lambda x:x.split('"')[1])
+    df["link"]=df.html.apply(lambda x:x.split('"')[1])
     df["cond"]=df["link"].apply(lambda x: x.lower().startswith("http"))
     df=df.drop(df[df.cond==False].index)
     split_bn(df)
     df.to_pickle(df_images)
+    print "images extracted from {} to {}".format(f_images, df_images)
 
 def extract_categories():
     with pd.get_store(store_path) as store:
-        # Delete hdfs files if already existing
         if categories in store:
             del store[categories]
-            #log.warn("Deleting {} from the store".format(sense_vectors))
-        # Offsets are needed for vectors to have unique index
         offset = 0
         chunk_iterator = pd.read_table( f_categories, delimiter=",", skipinitialspace=True,
                                         names=["bnid", "category", "extra"], skiprows=1,
@@ -161,35 +172,8 @@ def extract_categories():
             del df["extra"]
             split_categories(df)
             split_bn(df)
-            store.append(categories, df, min_itemsize={"category":500}, data_columns = ["BN", "POS"])
-
-def extract_graph():
-    """
-    """
-    with pd.get_store(store_path) as store:
-        # Delete hdfs files if already existing
-        if graph in store:
-            del store[graph]
-            #log.warn("Deleting {} from the store".format(sense_vectors))
-        # Offsets are needed for vectors to have unique index
-        offset = 0
-        chunk_iterator = pd.read_table( f_edges, delimiter=",", skipinitialspace=True,
-                                        iterator = True, chunksize=10000000)
-        for df in chunk_iterator:
-            new_offset      = offset + len(df)
-            df.index        = range(offset, new_offset)
-            offset          = new_offset
-            split_target(df)
-            split_bn(df)
-            store.append(graph, df, min_itemsize={"pointer":100}, data_columns = ["BN", "POS"])
+            store.append(categories, df, min_itemsize={"category":600}, data_columns = ["BN", "POS"])
+    print "Categories extracted from {} to {}".format(f_categories, store_path)
 
 
-def extract_sparse_semantic_network_representation():
-    with pd.get_store(store_path) as store:
-        store.select_col
 
-
-#print "Extracting Graph"
-#extract_graph()
-#print "Exctracting categories"
-#extract_categories()

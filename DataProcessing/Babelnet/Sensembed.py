@@ -117,6 +117,10 @@ def compute_synset_vectors(ngroup = 20):
             del store[tmp_table]
 
 def select_synset_vectors(df, ngroup = 20):
+    """
+        Should not be done like this.
+        Should use the same selection technique as done in Babelnet Extractor, it is much much faster
+    """
     tmp_table = "/tmp/bn_gp"
     tmp_column = "gp"
     selected_synsets = None
@@ -150,3 +154,4 @@ def select_synset_vectors(df, ngroup = 20):
             log.info("Deleting temp table")
             del store[tmp_table]
             return selected_synsets
+

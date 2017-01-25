@@ -15,45 +15,55 @@ from DataProcessing.util.Helpers import Logger
 from Validation import NNValidator
 from MappingFunctions import *
 
+from Helpers import get_Sensembed_A_labelmap, get_Random_labelmap
+
+
+
 log = Logger()
 
 class SMBDTrainer(object):
-    def __init__(self, ds_path="/home/tristan/data/Imagenet/datasets/Sensembed_A/256_224/center_crop/",
-                       input_unit_norm = True, label_unit_norm = True, distance = "cosine",
+    def __init__(self, ds_path="/media/tristan/41d01b1d-062b-48dc-997b-b029783eca9f/Imagenet/datasets/Sensembed_A/256_224/center_crop/",
+                       labels = "sembed", batch_size = 256,
+                       input_unit_norm = True, distance = "cosine",
                        load_parallel = True, map_parallel = True,
                        lr = 0.1, reg = 0.0, margin = 0.1, mode = "hinge"):
         """
         """
-        assert mode in ["dot", "square", "dot_nob", "square_nob", "hinge", "struct"]
+        assert mode in ["hinge", "struct"]
+        self.mode          = mode
         self.lr            = theano.shared(np.array(lr, dtype="float32"))
         self.reg           = theano.shared(np.array(reg, dtype="float32"))
         self.margin        = theano.shared(np.array(margin, dtype="float32"))
 
-        self.train_dl      = ThreadedLoader(os.path.join(ds_path,"train"), input_type="features",
-                                            input_unit_norm=input_unit_norm, label_unit_norm=label_unit_norm)
-        self.valid_dl      = ThreadedLoader(os.path.join(ds_path,"valid"), input_type="features",
-                                            input_unit_norm=input_unit_norm, label_unit_norm=label_unit_norm)
+        if distance == "cosine":
+            normalize = True
+        else:
+            normalize = True
 
-        self.v             = NNValidator(distance=distance)
+        if labels == "sembed":
+            self.label_map     = get_Sensembed_A_labelmap(normalize)
+        elif isinstance(labels, int):
+            self.label_map     = get_Random_labelmap(labels, normalize)
+        else:
+            raise Exception("Not Implemented label: {}".format(labels))
+
+        label_array = self.label_map.sort_values(by="LABEL").drop("LABEL", axis=1).get_values().astype("float32")
+
+        self.train_dl      = ThreadedLoader(self.label_map, os.path.join(ds_path,"train"),
+                                            input_type="features",input_unit_norm=normalize)
+        self.valid_dl      = ThreadedLoader(self.label_map, os.path.join(ds_path,"valid"),
+                                            input_type="features", input_unit_norm=normalize)
+        self.v             = NNValidator(label_array, distance=distance)
         self.hist          = pd.DataFrame(columns=["reg", "lr", "score_type", "scores", "epoch"])
 
         self.epoch_count   = 0
-        self.mode          = mode
-        self.compile_functions()
+        self.compile_functions(label_array, batch_size = batch_size)
 
-    def compile_functions(self):
+    def compile_functions(self, labels, batch_size = 256):
         if self.mode == "struct":
-            self.train_func, self.valid_func = compile_struct(self.lr, self.reg)
+            self.train_func, self.valid_func = compile_struct(labels, self.lr, self.reg, batch_size = batch_size)
         if self.mode == "hinge":
-            self.train_func, self.valid_func = compile_hinge(self.lr, self.reg, self.margin)
-        if self.mode == "square":
-            self.train_func, self.valid_func = compile_square(self.lr, self.reg)
-        if self.mode == "dot":
-            self.train_func, self.valid_func = compile_dot(self.lr, self.reg)
-        if self.mode == "dot_nob":
-            self.train_func, self.valid_func = compile_dot_nobias(self.lr, self.reg)
-        if self.mode == "square_nob":
-            self.train_func, self.valid_func = compile_square_nobias(self.lr, self.reg)
+            self.train_func, self.valid_func = compile_hinge(labels, self.lr, self.reg, self.margin, batch_size = batch_size)
 
     def set_lr(self, lr):
         """
@@ -132,6 +142,13 @@ class SMBDTrainer(object):
         """
         self.hist.to_pickle(file_path)
 
+    def drop_weights(self, file_path = "/home/tristan/Desktop/default_smbd_hist"):
+        """
+            TODO
+        """
+        pass
+
+
     def plot_hist(self,training=True, valid=True, topk=True):
         hist = self.hist.set_index(self.hist.epoch)
         if training:
@@ -147,7 +164,8 @@ class SMBDTrainer(object):
         for i in range(nepoch):
             log.info("{}th Epoch! Total {} epochs done".format(i, self.epoch_count))
             if i in table.keys():
-                log.info("Setting lr to {}".format(table[i]))
+                if table[i] is None:
+                    break
                 self.set_lr(table[i])
             self.run_train_epoch()
             self.run_valid_epoch()
